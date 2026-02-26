@@ -2,6 +2,8 @@
 
 A minimal, brain‑teasing puzzle game with a raw Neo‑Brutalist aesthetic. Slide arrows off the board, undo moves, get hints, and watch the game auto‑advance when you win.
 
+🔗 **Play now**: https://instai4.github.io/ARROW_SLIDE/
+ 
 ## ✨ Features
 
 - **Unique sliding mechanic** – arrows move until they hit another arrow or leave the board.
