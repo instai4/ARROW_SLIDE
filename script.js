@@ -1,4 +1,4 @@
-  (function() {
+   (function() {
             const Sound = {
                 context: null,
                 init() {
@@ -48,40 +48,99 @@
                     this.winFlag = false;
                 }
 
-                newGrid() {
-                    const size = this.size;
-                    const p = Math.min(0.9, 0.65 + this.level * 0.02);
-                    const grid = Array(size).fill().map(() => Array(size).fill(null));
-                    
-                    const rowLeft = Array(size).fill(false);
-                    const rowRight = Array(size).fill(false);
-                    const colUp = Array(size).fill(false);
-                    const colDown = Array(size).fill(false);
-
-                    for (let r = 0; r < size; r++) {
-                        for (let c = 0; c < size; c++) {
-                            if (Math.random() < p) {
-                                const allowed = [];
-                                if (!rowRight[r]) allowed.push('←');
-                                if (!rowLeft[r]) allowed.push('→');
-                                if (!colDown[c]) allowed.push('↑');
-                                if (!colUp[c]) allowed.push('↓');
-
-                                if (allowed.length === 0) continue;
-
-                                const dir = allowed[Math.floor(Math.random() * allowed.length)];
-                                grid[r][c] = dir;
-
-                                switch (dir) {
-                                    case '←': rowLeft[r] = true; break;
-                                    case '→': rowRight[r] = true; break;
-                                    case '↑': colUp[c] = true; break;
-                                    case '↓': colDown[c] = true; break;
+                // Check if any arrow in the given grid has a valid move
+                hasAnyMove(grid) {
+                    for (let r = 0; r < grid.length; r++) {
+                        for (let c = 0; c < grid.length; c++) {
+                            if (grid[r][c] === null) continue;
+                            const pathInfo = this.getMovePathForGrid(grid, r, c);
+                            if (pathInfo) {
+                                if (pathInfo.path.length > 1 || (pathInfo.path.length === 1 && pathInfo.action === 'remove')) {
+                                    return true;
                                 }
                             }
                         }
                     }
-                    return grid;
+                    return false;
+                }
+
+                getMovePathForGrid(grid, r, c) {
+                    const arrow = grid[r]?.[c];
+                    if (!arrow) return null;
+
+                    const dirs = { '↑': [-1, 0], '↓': [1, 0], '←': [0, -1], '→': [0, 1] };
+                    const [dr, dc] = dirs[arrow];
+
+                    let path = [{ r, c }];
+                    let nr = r + dr;
+                    let nc = c + dc;
+
+                    if (nr < 0 || nr >= grid.length || nc < 0 || nc >= grid.length) {
+                        return { path, action: 'remove' };
+                    }
+
+                    while (nr >= 0 && nr < grid.length && nc >= 0 && nc < grid.length && grid[nr][nc] === null) {
+                        path.push({ r: nr, c: nc });
+                        nr += dr;
+                        nc += dc;
+                    }
+
+                    if (nr < 0 || nr >= grid.length || nc < 0 || nc >= grid.length) {
+                        return { path, action: 'remove' };
+                    } else {
+                        return { path, action: 'stop' };
+                    }
+                }
+
+                // Generate a grid that guarantees at least one move
+                newGrid() {
+                    const size = this.size;
+                    const p = Math.min(0.9, 0.65 + this.level * 0.02);
+                    let attempts = 0;
+                    const maxAttempts = 100;
+
+                    while (attempts < maxAttempts) {
+                        const grid = Array(size).fill().map(() => Array(size).fill(null));
+                        
+                        const rowLeft = Array(size).fill(false);
+                        const rowRight = Array(size).fill(false);
+                        const colUp = Array(size).fill(false);
+                        const colDown = Array(size).fill(false);
+
+                        for (let r = 0; r < size; r++) {
+                            for (let c = 0; c < size; c++) {
+                                if (Math.random() < p) {
+                                    const allowed = [];
+                                    if (!rowRight[r]) allowed.push('←');
+                                    if (!rowLeft[r]) allowed.push('→');
+                                    if (!colDown[c]) allowed.push('↑');
+                                    if (!colUp[c]) allowed.push('↓');
+
+                                    if (allowed.length === 0) continue;
+
+                                    const dir = allowed[Math.floor(Math.random() * allowed.length)];
+                                    grid[r][c] = dir;
+
+                                    switch (dir) {
+                                        case '←': rowLeft[r] = true; break;
+                                        case '→': rowRight[r] = true; break;
+                                        case '↑': colUp[c] = true; break;
+                                        case '↓': colDown[c] = true; break;
+                                    }
+                                }
+                            }
+                        }
+
+                        // Ensure at least one move exists
+                        if (this.hasAnyMove(grid)) {
+                            return grid;
+                        }
+                        attempts++;
+                    }
+                    // Fallback: create a simple movable arrow
+                    const fallbackGrid = Array(size).fill().map(() => Array(size).fill(null));
+                    fallbackGrid[0][0] = '→'; // This will move right if empty
+                    return fallbackGrid;
                 }
 
                 reset(keepLevel = true) {
@@ -93,31 +152,7 @@
                 }
 
                 getMovePath(r, c) {
-                    const arrow = this.grid[r]?.[c];
-                    if (!arrow) return null;
-
-                    const dirs = { '↑': [-1, 0], '↓': [1, 0], '←': [0, -1], '→': [0, 1] };
-                    const [dr, dc] = dirs[arrow];
-
-                    let path = [{ r, c }];
-                    let nr = r + dr;
-                    let nc = c + dc;
-
-                    if (nr < 0 || nr >= this.size || nc < 0 || nc >= this.size) {
-                        return { path, action: 'remove' };
-                    }
-
-                    while (nr >= 0 && nr < this.size && nc >= 0 && nc < this.size && this.grid[nr][nc] === null) {
-                        path.push({ r: nr, c: nc });
-                        nr += dr;
-                        nc += dc;
-                    }
-
-                    if (nr < 0 || nr >= this.size || nc < 0 || nc >= this.size) {
-                        return { path, action: 'remove' };
-                    } else {
-                        return { path, action: 'stop' };
-                    }
+                    return this.getMovePathForGrid(this.grid, r, c);
                 }
 
                 applyStep(fromR, fromC, toR, toC) {
@@ -216,17 +251,21 @@
                 }
 
                 bindEvents(handler) {
-                    this.gridEl.addEventListener('click', (e) => {
+                    // Use both click and touchend for reliable mobile interaction
+                    const handleTap = (e) => {
                         const cell = e.target.closest('.cell');
                         if (!cell) return;
                         if (cell.classList.contains('empty')) return;
                         const row = parseInt(cell.dataset.row, 10);
                         const col = parseInt(cell.dataset.col, 10);
                         handler(row, col);
+                    };
+
+                    this.gridEl.addEventListener('click', handleTap);
+                    this.gridEl.addEventListener('touchend', (e) => {
+                        e.preventDefault(); // Prevent zoom or context menu
+                        handleTap(e);
                     });
-                    this.gridEl.addEventListener('touchstart', (e) => {
-                        e.preventDefault();
-                    }, { passive: false });
                 }
 
                 highlightCell(r, c) {
@@ -280,18 +319,7 @@
                 }
 
                 hasAnyMove() {
-                    for (let r = 0; r < this.game.size; r++) {
-                        for (let c = 0; c < this.game.size; c++) {
-                            if (this.game.grid[r][c] === null) continue;
-                            const pathInfo = this.game.getMovePath(r, c);
-                            if (pathInfo) {
-                                if (pathInfo.path.length > 1 || (pathInfo.path.length === 1 && pathInfo.action === 'remove')) {
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                    return false;
+                    return this.game.hasAnyMove(this.game.grid);
                 }
 
                 checkStuck() {
@@ -497,4 +525,3 @@
                 new GameController();
             });
         })();
-    
