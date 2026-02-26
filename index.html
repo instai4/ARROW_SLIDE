@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ARROW SLIDE · BRUTAL</title>
+    <!-- NeoBrutalist Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Space+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Remix Icon & Font Awesome for footer icons -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* ----- RESET & SCROLLABLE BASE ----- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #FFFDF5;
+            background-image: 
+                radial-gradient(#000 1px, transparent 1px),
+                linear-gradient(to right, #e5e5e5 1px, transparent 1px),
+                linear-gradient(to bottom, #e5e5e5 1px, transparent 1px);
+            background-size: 40px 40px, 100px 100px, 100px 100px;
+            font-family: 'Space Grotesk', sans-serif;
+            cursor: none;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* custom cursor (hidden on touch devices) */
+        #cursor {
+            pointer-events: none;
+            position: fixed;
+            width: 24px;
+            height: 24px;
+            background-color: white;
+            border: 2px solid black;
+            border-radius: 50%;
+            z-index: 9999;
+            mix-blend-mode: difference;
+            transition: width 0.2s, height 0.2s, background-color 0.2s, transform 0.1s;
+            transform: translate(-50%, -50%);
+        }
+
+        /* main layout - responsive flex */
+        .brutal-layout {
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px 16px;
+        }
+
+        /* game container */
+        .game-container {
+            flex: 1 1 auto;
+            max-width: 700px;
+            background: #FFFDF5;
+            border: 4px solid #000;
+            box-shadow: 12px 12px 0px 0px #000;
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* side panel for buttons */
+        .button-side {
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 16px;
+            background: transparent;
+            max-width: 200px;
+        }
+
+        .button-row {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .btn {
+            background: #FBFF48;
+            border: 3px solid #000;
+            box-shadow: 5px 5px 0px 0px #000;
+            color: #121212;
+            font-weight: 700;
+            font-size: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 12px 16px;
+            min-width: 110px;
+            cursor: pointer;
+            transition: 0.08s linear;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            flex: 1 1 auto;
+        }
+        .btn:active {
+            transform: translate(3px, 3px);
+            box-shadow: 2px 2px 0px 0px #000;
+        }
+        .btn.next {
+            background: #3B82F6;
+            color: white;
+        }
+        #undoBtn { background: #FF70A6; }
+        #hintBtn { background: #A855F7; color: white; }
+
+        /* title */
+        .title-block {
+            display: inline-block;
+            background: #FFFDF5;
+            border: 4px solid #000;
+            padding: 6px 20px;
+            font-size: clamp(1.8rem, 6vh, 2.5rem);
+            font-weight: 800;
+            text-transform: uppercase;
+            box-shadow: 6px 6px 0px 0px #000;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+            flex-shrink: 0;
+            align-self: flex-start;
+        }
+        .title-block span {
+            color: #FF2A2A;
+        }
+
+        /* stats bar */
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            background: #121212;
+            border: 3px solid #000;
+            padding: 8px 16px;
+            margin-bottom: 12px;
+            box-shadow: 6px 6px 0px 0px #000;
+            color: #FFFDF5;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .stats-bar div {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .stats-bar span {
+            background: #33FF57;
+            color: #000;
+            padding: 2px 12px;
+            border: 2px solid #000;
+            box-shadow: 3px 3px 0px 0px #000;
+        }
+
+        /* grid wrapper */
+        .grid-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 8px 0;
+        }
+
+        .grid {
+            display: grid;
+            gap: min(1vw, 8px);
+            justify-content: center;
+            width: 100%;
+            max-width: min(70vh, 90vw); /* on mobile, use 90vw */
+            aspect-ratio: 1 / 1;
+        }
+
+        .cell {
+            aspect-ratio: 1 / 1;
+            width: 100%;
+            background: #FFFDF5;
+            border: 3px solid #000;
+            box-shadow: 5px 5px 0px 0px #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: min(6vw, 2.8rem);
+            font-weight: 800;
+            font-family: 'Space Grotesk', sans-serif;
+            color: #121212;
+            cursor: pointer;
+            transition: all 0.08s linear;
+            user-select: none;
+        }
+        .cell:active {
+            transform: translate(3px, 3px);
+            box-shadow: 2px 2px 0px 0px #000;
+        }
+        .cell.empty {
+            background: #ddd;
+            color: transparent;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        .cell.hint {
+            box-shadow: 0 0 0 5px #FBFF48, 5px 5px 0px 0px #000;
+            transform: scale(1.02);
+            transition: all 0.1s ease;
+        }
+
+        /* message panels */
+        .message-panel {
+            flex-shrink: 0;
+            margin-bottom: 12px;
+        }
+        .congrats, .stuck-message {
+            text-align: center;
+            border: 4px solid #000;
+            box-shadow: 8px 8px 0px 0px #000;
+            color: #121212;
+            padding: 12px 16px;
+            font-weight: 800;
+            font-size: 1.4rem;
+            font-family: 'Space Grotesk', sans-serif;
+            text-transform: uppercase;
+            display: none;
+        }
+        .congrats {
+            background: #33FF57;
+            animation: brutalPulse 1s infinite;
+        }
+        .stuck-message {
+            background: #FF2A2A;
+            color: white;
+        }
+        @keyframes brutalPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); box-shadow: 10px 10px 0px 0px #000; }
+            100% { transform: scale(1); }
+        }
+
+        /* marquee */
+        .marquee-container {
+            overflow: hidden;
+            border-top: 3px solid #000;
+            border-bottom: 3px solid #000;
+            background: #FF9F1C;
+            padding: 4px 0;
+            flex-shrink: 0;
+            margin-top: 8px;
+        }
+        .marquee-content {
+            display: flex;
+            animation: scroll 20s linear infinite;
+            white-space: nowrap;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            color: #121212;
+        }
+        .marquee-content span {
+            margin-right: 30px;
+        }
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* ----- FOOTER ----- */
+        .brutal-footer {
+            flex-shrink: 0;
+            background: #121212;
+            border-top: 4px solid #000;
+            box-shadow: 0 -6px 0 #000;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'JetBrains Mono', monospace;
+            color: #FFFDF5;
+        }
+        .creator {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        .creator a {
+            color: #FBFF48;
+            text-decoration: none;
+            font-weight: 700;
+            border-bottom: 2px solid #FBFF48;
+        }
+        .creator a:hover {
+            background: #FBFF48;
+            color: #121212;
+        }
+        .social-icons {
+            display: flex;
+            gap: 20px;
+        }
+        .social-icon {
+            color: #FFFDF5;
+            font-size: 1.5rem;
+            transition: all 0.1s linear;
+            border: 2px solid transparent;
+        }
+        .social-icon:hover {
+            color: #FBFF48;
+            transform: scale(1.1);
+        }
+
+        /* ===== PHONE-SPECIFIC RESPONSIVE ===== */
+        @media (max-width: 800px) {
+            .brutal-layout {
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+                gap: 16px;
+            }
+            .button-side {
+                max-width: 100%;
+                width: 100%;
+                flex-direction: row;
+                justify-content: center;
+            }
+            .button-row {
+                width: 100%;
+            }
+        }
+
+        /* small phones */
+        @media (max-width: 480px) {
+            body {
+                padding: 0;
+            }
+            .brutal-layout {
+                padding: 12px 8px;
+            }
+            .game-container {
+                padding: 12px 12px;
+                border-width: 3px;
+                box-shadow: 8px 8px 0px 0px #000;
+            }
+            .title-block {
+                font-size: 1.5rem;
+                padding: 4px 12px;
+                border-width: 3px;
+                box-shadow: 4px 4px 0px 0px #000;
+                margin-bottom: 8px;
+            }
+            .stats-bar {
+                font-size: 0.7rem;
+                padding: 4px 8px;
+                border-width: 2px;
+                box-shadow: 4px 4px 0px 0px #000;
+            }
+            .stats-bar span {
+                padding: 2px 6px;
+                border-width: 1px;
+                box-shadow: 2px 2px 0px 0px #000;
+            }
+            .btn {
+                font-size: 0.7rem;
+                padding: 6px 8px;
+                min-width: 60px;
+                border-width: 2px;
+                box-shadow: 3px 3px 0px 0px #000;
+            }
+            .grid {
+                gap: 4px;
+                max-width: 90vw;
+            }
+            .cell {
+                border-width: 2px;
+                box-shadow: 3px 3px 0px 0px #000;
+                font-size: min(8vw, 2.2rem);
+            }
+            .congrats, .stuck-message {
+                font-size: 0.9rem;
+                padding: 8px;
+                border-width: 2px;
+                box-shadow: 4px 4px 0px 0px #000;
+            }
+            .marquee-container {
+                border-width: 2px;
+            }
+            .marquee-content {
+                font-size: 0.7rem;
+            }
+            .brutal-footer {
+                flex-direction: column;
+                gap: 8px;
+                text-align: center;
+                padding: 8px 16px;
+            }
+            .social-icons {
+                gap: 16px;
+            }
+            .social-icon {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* hide cursor on touch devices */
+        @media (max-width: 768px) {
+            body { cursor: auto; }
+            #cursor { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div id="cursor"></div>
+
+    <div class="brutal-layout">
+        <!-- main game box -->
+        <div class="game-container">
+            <div class="title-block">
+                ARROW <span>SLIDE</span>
+            </div>
+
+            <div class="stats-bar">
+                <div> LVL <span id="levelDisplay">1</span></div>
+                <div> MOVES <span id="movesDisplay">0</span></div>
+            </div>
+
+            <div class="message-panel">
+                <div id="congratsMessage" class="congrats">🎉 LEVEL COMPLETE! 🎉</div>
+                <div id="stuckMessage" class="stuck-message">⚠️ NO MOVES! CLICK RESTART</div>
+            </div>
+
+            <div class="grid-wrapper">
+                <div id="gridContainer" class="grid"></div>
+            </div>
+
+            <div class="marquee-container">
+                <div class="marquee-content">
+                    <span>/// SLIDE & SOLVE /// NO OPPOSITES IN ROW/COL ///</span>
+                    <span>/// SLIDE & SOLVE /// NO OPPOSITES IN ROW/COL ///</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- side panel with buttons -->
+        <div class="button-side">
+            <div class="button-row">
+                <button class="btn" id="undoBtn"><i class="ri-arrow-go-back-line"></i> UNDO</button>
+                <button class="btn" id="hintBtn"><i class="ri-lightbulb-line"></i> HINT</button>
+                <button class="btn" id="restartBtn">⟲ RESTART</button>
+                <button class="btn next" id="nextBtn">⏩ NEXT</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="brutal-footer">
+        <p class="creator">Created by <a href="https://instai4.github.io/PORT-FOLIO/" target="_blank">Anurag</a> · Arrow Slide Brutal</p>
+        <div class="social-icons">
+            <a href="https://www.instagram.com/inst.ai.4?igsh=MWNqaG15OWQ2MGczMA==" target="_blank" class="social-icon" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="https://www.facebook.com/share/1DMBwCvzDL/" target="_blank" class="social-icon" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+            <a href="https://www.linkedin.com/in/anurag-singh-43230a380/" target="_blank" class="social-icon" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+            <a href="https://github.com/instai4" target="_blank" class="social-icon" aria-label="GitHub"><i class="fab fa-github"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        // (Full game script – unchanged, included for completeness)
+        (function() {
+            const Sound = {
+                context: null,
+                init() {
+                    if (!this.context) {
+                        this.context = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                },
+                playMove() {
+                    this.init();
+                    if (this.context.state === 'suspended') {
+                        this.context.resume();
+                        return;
+                    }
+                    const osc = this.context.createOscillator();
+                    const gain = this.context.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = 620;
+                    gain.gain.value = 0.08;
+                    osc.connect(gain).connect(this.context.destination);
+                    osc.start();
+                    osc.stop(this.context.currentTime + 0.07);
+                },
+                playWin() {
+                    this.init();
+                    if (this.context.state === 'suspended') return;
+                    const now = this.context.currentTime;
+                    [523.25, 659.25, 783.99].forEach((freq, i) => {
+                        const osc = this.context.createOscillator();
+                        const gain = this.context.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.value = freq;
+                        gain.gain.value = 0.1;
+                        osc.connect(gain).connect(this.context.destination);
+                        osc.start(now + i * 0.12);
+                        osc.stop(now + i * 0.15 + 0.1);
+                    });
+                }
+            };
+
+            class GameState {
+                constructor() {
+                    this.level = 1;
+                    this.moves = 0;
+                    this.grid = [];
+                    this.size = 5;
+                    this.arrows = ['↑', '↓', '←', '→'];
+                    this.winFlag = false;
+                }
+
+                newGrid() {
+                    const size = this.size;
+                    const p = Math.min(0.9, 0.65 + this.level * 0.02);
+                    const grid = Array(size).fill().map(() => Array(size).fill(null));
+                    
+                    const rowLeft = Array(size).fill(false);
+                    const rowRight = Array(size).fill(false);
+                    const colUp = Array(size).fill(false);
+                    const colDown = Array(size).fill(false);
+
+                    for (let r = 0; r < size; r++) {
+                        for (let c = 0; c < size; c++) {
+                            if (Math.random() < p) {
+                                const allowed = [];
+                                if (!rowRight[r]) allowed.push('←');
+                                if (!rowLeft[r]) allowed.push('→');
+                                if (!colDown[c]) allowed.push('↑');
+                                if (!colUp[c]) allowed.push('↓');
+
+                                if (allowed.length === 0) continue;
+
+                                const dir = allowed[Math.floor(Math.random() * allowed.length)];
+                                grid[r][c] = dir;
+
+                                switch (dir) {
+                                    case '←': rowLeft[r] = true; break;
+                                    case '→': rowRight[r] = true; break;
+                                    case '↑': colUp[c] = true; break;
+                                    case '↓': colDown[c] = true; break;
+                                }
+                            }
+                        }
+                    }
+                    return grid;
+                }
+
+                reset(keepLevel = true) {
+                    if (!keepLevel) this.level = 1;
+                    this.size = Math.min(7, 4 + this.level);
+                    this.grid = this.newGrid();
+                    this.moves = 0;
+                    this.winFlag = false;
+                }
+
+                getMovePath(r, c) {
+                    const arrow = this.grid[r]?.[c];
+                    if (!arrow) return null;
+
+                    const dirs = { '↑': [-1, 0], '↓': [1, 0], '←': [0, -1], '→': [0, 1] };
+                    const [dr, dc] = dirs[arrow];
+
+                    let path = [{ r, c }];
+                    let nr = r + dr;
+                    let nc = c + dc;
+
+                    if (nr < 0 || nr >= this.size || nc < 0 || nc >= this.size) {
+                        return { path, action: 'remove' };
+                    }
+
+                    while (nr >= 0 && nr < this.size && nc >= 0 && nc < this.size && this.grid[nr][nc] === null) {
+                        path.push({ r: nr, c: nc });
+                        nr += dr;
+                        nc += dc;
+                    }
+
+                    if (nr < 0 || nr >= this.size || nc < 0 || nc >= this.size) {
+                        return { path, action: 'remove' };
+                    } else {
+                        return { path, action: 'stop' };
+                    }
+                }
+
+                applyStep(fromR, fromC, toR, toC) {
+                    const arrow = this.grid[fromR][fromC];
+                    this.grid[fromR][fromC] = null;
+                    if (toR !== undefined && toC !== undefined) {
+                        this.grid[toR][toC] = arrow;
+                    }
+                }
+
+                isWin() {
+                    for (let row of this.grid) {
+                        for (let cell of row) {
+                            if (cell !== null) return false;
+                        }
+                    }
+                    return true;
+                }
+
+                levelUp() {
+                    this.level++;
+                    this.size = Math.min(7, 4 + this.level);
+                    this.grid = this.newGrid();
+                    this.moves = 0;
+                    this.winFlag = false;
+                }
+
+                load(saved) {
+                    this.level = saved.level || 1;
+                    this.moves = saved.moves || 0;
+                    this.grid = saved.grid || [];
+                    this.size = this.grid.length || 5;
+                }
+
+                serialize() {
+                    return {
+                        level: this.level,
+                        moves: this.moves,
+                        grid: this.grid,
+                        version: 5
+                    };
+                }
+            }
+
+            const Storage = {
+                key: 'arrowPuzzleBrutal',
+                save(state) {
+                    try {
+                        localStorage.setItem(this.key, JSON.stringify(state.serialize()));
+                    } catch (e) {}
+                },
+                load() {
+                    try {
+                        const raw = localStorage.getItem(this.key);
+                        if (!raw) return null;
+                        const data = JSON.parse(raw);
+                        if (data.version !== 5) return null;
+                        return data;
+                    } catch (e) {
+                        return null;
+                    }
+                }
+            };
+
+            class UIManager {
+                constructor(game, gridEl, levelSpan, movesSpan, congratsEl, stuckEl) {
+                    this.game = game;
+                    this.gridEl = gridEl;
+                    this.levelSpan = levelSpan;
+                    this.movesSpan = movesSpan;
+                    this.congratsEl = congratsEl;
+                    this.stuckEl = stuckEl;
+                }
+
+                render() {
+                    this.gridEl.style.gridTemplateColumns = `repeat(${this.game.size}, 1fr)`;
+                    let html = '';
+                    for (let r = 0; r < this.game.size; r++) {
+                        for (let c = 0; c < this.game.size; c++) {
+                            const val = this.game.grid[r][c];
+                            const emptyClass = val === null ? 'empty' : '';
+                            html += `<div class="cell ${emptyClass}" data-row="${r}" data-col="${c}">${val || ''}</div>`;
+                        }
+                    }
+                    this.gridEl.innerHTML = html;
+                    this.levelSpan.textContent = this.game.level;
+                    this.movesSpan.textContent = this.game.moves;
+                }
+
+                showCongrats(show) {
+                    this.congratsEl.style.display = show ? 'block' : 'none';
+                }
+
+                showStuck(show) {
+                    this.stuckEl.style.display = show ? 'block' : 'none';
+                }
+
+                bindEvents(handler) {
+                    this.gridEl.addEventListener('click', (e) => {
+                        const cell = e.target.closest('.cell');
+                        if (!cell) return;
+                        if (cell.classList.contains('empty')) return;
+                        const row = parseInt(cell.dataset.row, 10);
+                        const col = parseInt(cell.dataset.col, 10);
+                        handler(row, col);
+                    });
+                    this.gridEl.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                    }, { passive: false });
+                }
+
+                highlightCell(r, c) {
+                    this.clearHint();
+                    const cell = document.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
+                    if (cell) cell.classList.add('hint');
+                }
+
+                clearHint() {
+                    document.querySelectorAll('.cell.hint').forEach(cell => cell.classList.remove('hint'));
+                }
+            }
+
+            class GameController {
+                constructor() {
+                    this.game = new GameState();
+                    this.ui = new UIManager(
+                        this.game,
+                        document.getElementById('gridContainer'),
+                        document.getElementById('levelDisplay'),
+                        document.getElementById('movesDisplay'),
+                        document.getElementById('congratsMessage'),
+                        document.getElementById('stuckMessage')
+                    );
+                    this.isAnimating = false;
+                    this.undoStack = [];
+                    this.maxUndo = 20;
+                    this.nextLevelTimeout = null;
+                    this.stuckFlag = false;
+
+                    const saved = Storage.load();
+                    if (saved) {
+                        this.game.load(saved);
+                    } else {
+                        this.game.reset();
+                    }
+
+                    this.ui.render();
+                    this.ui.bindEvents((r, c) => this.handleCellClick(r, c));
+                    this.checkStuck();
+
+                    document.getElementById('undoBtn').addEventListener('click', () => this.undo());
+                    document.getElementById('hintBtn').addEventListener('click', () => this.hint());
+                    document.getElementById('restartBtn').addEventListener('click', () => this.restart());
+                    document.getElementById('nextBtn').addEventListener('click', () => this.nextLevel());
+
+                    document.addEventListener('click', function unlockAudio() {
+                        Sound.init();
+                        document.removeEventListener('click', unlockAudio);
+                    }, { once: true });
+                }
+
+                hasAnyMove() {
+                    for (let r = 0; r < this.game.size; r++) {
+                        for (let c = 0; c < this.game.size; c++) {
+                            if (this.game.grid[r][c] === null) continue;
+                            const pathInfo = this.game.getMovePath(r, c);
+                            if (pathInfo) {
+                                if (pathInfo.path.length > 1 || (pathInfo.path.length === 1 && pathInfo.action === 'remove')) {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                    return false;
+                }
+
+                checkStuck() {
+                    if (this.game.winFlag) {
+                        this.stuckFlag = false;
+                        this.ui.showStuck(false);
+                        return;
+                    }
+                    const movable = this.hasAnyMove();
+                    this.stuckFlag = !movable;
+                    this.ui.showStuck(!movable);
+                }
+
+                pushState() {
+                    const state = {
+                        grid: this.game.grid.map(row => [...row]),
+                        moves: this.game.moves,
+                        level: this.game.level,
+                        size: this.game.size
+                    };
+                    this.undoStack.push(state);
+                    if (this.undoStack.length > this.maxUndo) this.undoStack.shift();
+                }
+
+                undo() {
+                    if (this.isAnimating || this.game.winFlag) return;
+                    if (this.undoStack.length === 0) return;
+                    const prev = this.undoStack.pop();
+                    this.game.grid = prev.grid.map(row => [...row]);
+                    this.game.moves = prev.moves;
+                    this.game.level = prev.level;
+                    this.game.size = prev.size;
+                    this.game.winFlag = false;
+                    this.ui.clearHint();
+                    this.ui.render();
+                    Storage.save(this.game);
+                    this.ui.showCongrats(false);
+                    if (this.nextLevelTimeout) {
+                        clearTimeout(this.nextLevelTimeout);
+                        this.nextLevelTimeout = null;
+                    }
+                    this.checkStuck();
+                }
+
+                hint() {
+                    if (this.isAnimating || this.game.winFlag || this.stuckFlag) return;
+                    this.ui.clearHint();
+
+                    const validMoves = [];
+                    for (let r = 0; r < this.game.size; r++) {
+                        for (let c = 0; c < this.game.size; c++) {
+                            if (this.game.grid[r][c] === null) continue;
+                            const pathInfo = this.game.getMovePath(r, c);
+                            if (pathInfo) {
+                                if (pathInfo.path.length > 1 || (pathInfo.path.length === 1 && pathInfo.action === 'remove')) {
+                                    validMoves.push({ r, c });
+                                }
+                            }
+                        }
+                    }
+
+                    if (validMoves.length === 0) return;
+
+                    const randomIndex = Math.floor(Math.random() * validMoves.length);
+                    const { r, c } = validMoves[randomIndex];
+                    this.ui.highlightCell(r, c);
+                    setTimeout(() => this.ui.clearHint(), 2000);
+                }
+
+                handleCellClick(r, c) {
+                    if (this.isAnimating || this.game.winFlag || this.stuckFlag) return;
+
+                    const pathInfo = this.game.getMovePath(r, c);
+                    if (!pathInfo) return;
+                    const { path, action } = pathInfo;
+                    if (path.length === 0) return;
+                    if (path.length === 1 && action === 'stop') return;
+
+                    this.pushState();
+                    this.isAnimating = true;
+                    this.ui.clearHint();
+
+                    let stepIndex = 0;
+                    const performStep = () => {
+                        if (stepIndex < path.length - 1) {
+                            const from = path[stepIndex];
+                            const to = path[stepIndex + 1];
+                            this.game.applyStep(from.r, from.c, to.r, to.c);
+                            this.ui.render();
+                            Sound.playMove();
+                            stepIndex++;
+                            setTimeout(performStep, 70);
+                        } else {
+                            if (action === 'remove') {
+                                const last = path[path.length - 1];
+                                this.game.applyStep(last.r, last.c, undefined, undefined);
+                                this.ui.render();
+                                Sound.playMove();
+                            }
+                            this.game.moves++;
+                            this.ui.movesSpan.textContent = this.game.moves;
+                            this.isAnimating = false;
+                            Storage.save(this.game);
+
+                            if (this.game.isWin()) {
+                                this.game.winFlag = true;
+                                Sound.playWin();
+                                this.ui.showCongrats(true);
+                                this.ui.showStuck(false);
+                                this.nextLevelTimeout = setTimeout(() => {
+                                    this.nextLevel();
+                                }, 2000);
+                            } else {
+                                this.checkStuck();
+                            }
+                        }
+                    };
+
+                    if (path.length === 1 && action === 'remove') {
+                        this.game.applyStep(r, c, undefined, undefined);
+                        this.ui.render();
+                        Sound.playMove();
+                        this.game.moves++;
+                        this.ui.movesSpan.textContent = this.game.moves;
+                        this.isAnimating = false;
+                        Storage.save(this.game);
+                        if (this.game.isWin()) {
+                            this.game.winFlag = true;
+                            Sound.playWin();
+                            this.ui.showCongrats(true);
+                            this.ui.showStuck(false);
+                            this.nextLevelTimeout = setTimeout(() => {
+                                this.nextLevel();
+                            }, 2000);
+                        } else {
+                            this.checkStuck();
+                        }
+                    } else {
+                        performStep();
+                    }
+                }
+
+                restart() {
+                    if (this.isAnimating) return;
+                    this.game.reset(true);
+                    this.undoStack = [];
+                    this.ui.clearHint();
+                    this.ui.render();
+                    this.ui.showCongrats(false);
+                    this.ui.showStuck(false);
+                    Storage.save(this.game);
+                    if (this.nextLevelTimeout) {
+                        clearTimeout(this.nextLevelTimeout);
+                        this.nextLevelTimeout = null;
+                    }
+                    this.checkStuck();
+                }
+
+                nextLevel() {
+                    if (this.isAnimating) return;
+                    this.game.levelUp();
+                    this.undoStack = [];
+                    this.ui.clearHint();
+                    this.ui.render();
+                    this.ui.showCongrats(false);
+                    this.ui.showStuck(false);
+                    Storage.save(this.game);
+                    if (this.nextLevelTimeout) {
+                        clearTimeout(this.nextLevelTimeout);
+                        this.nextLevelTimeout = null;
+                    }
+                    this.checkStuck();
+                }
+            }
+
+            // Custom cursor
+            const cursor = document.getElementById('cursor');
+            if (cursor) {
+                document.addEventListener('mousemove', (e) => {
+                    cursor.style.left = e.clientX + 'px';
+                    cursor.style.top = e.clientY + 'px';
+                });
+                const hoverEls = document.querySelectorAll('.btn, .cell');
+                hoverEls.forEach(el => {
+                    el.addEventListener('mouseenter', () => {
+                        cursor.style.width = '60px';
+                        cursor.style.height = '60px';
+                        cursor.style.backgroundColor = '#FBFF48';
+                        cursor.style.mixBlendMode = 'normal';
+                        cursor.style.border = '2px solid black';
+                    });
+                    el.addEventListener('mouseleave', () => {
+                        cursor.style.width = '24px';
+                        cursor.style.height = '24px';
+                        cursor.style.backgroundColor = 'white';
+                        cursor.style.mixBlendMode = 'difference';
+                        cursor.style.border = '2px solid black';
+                    });
+                });
+            }
+
+            window.addEventListener('DOMContentLoaded', () => {
+                new GameController();
+            });
+        })();
+    </script>
+</body>
+</html>
